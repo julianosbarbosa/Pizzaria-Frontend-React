@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import Logo from "../../assets/logotipo.png";
 import { Button, Grid } from "@material-ui/core";
 import { Container } from "./styles";
@@ -20,17 +20,40 @@ firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
 class Login extends Component {
+  state = {
+    isLoggedIn: false,
+    user: null
+  };
+
   componentDidMount() {
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
         console.log("usuario logado ", user);
+        this.setState({ isLoggedIn: true, user });
       } else {
         console.log("usuario não logado ", user);
+        this.setState({ isLoggedIn: false, user: null });
       }
     });
   }
 
+  login() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithRedirect(provider);
+  }
+
+  logout = () => {
+    firebase
+      .auth()
+      .signOut()
+      .then(() => {
+        console.log("deslogado");
+        this.setState({ isLoggedIn: false, user: null });
+      });
+  };
+
   render() {
+    const { isLoggedIn, user } = this.state;
     return (
       <Container>
         <Grid container direction="column" alignItems="center" spacing={4}>
@@ -38,17 +61,29 @@ class Login extends Component {
             <img src={Logo} alt="logotipo" />
           </Grid>
           <Grid item>
-            <Button
-              variant="outlined"
-              color="primary"
-              fullWidth
-              onClick={() => {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                firebase.auth().signInWithRedirect(provider);
-              }}
-            >
-              Entrar com Google
-            </Button>
+            {isLoggedIn && (
+              <Fragment>
+                <pre>{JSON.stringify(user.displayName)}</pre>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={this.logout}
+                  fullWidth
+                >
+                  Sair
+                </Button>
+              </Fragment>
+            )}
+            {!isLoggedIn && (
+              <Button
+                variant="outlined"
+                color="primary"
+                fullWidth
+                onClick={this.login}
+              >
+                Entrar com Google
+              </Button>
+            )}
           </Grid>
         </Grid>
       </Container>
