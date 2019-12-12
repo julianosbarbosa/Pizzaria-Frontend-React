@@ -1,11 +1,11 @@
-import React, { Component, Fragment } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import Logo from "../../assets/logotipo.png";
 import { Button, Grid } from "@material-ui/core";
 import { Container } from "./styles";
 import * as firebase from "firebase";
 import "firebase/auth";
 
-var firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyC5WPL9V3JFRnk2k5WmcmgLIP5XTB8wHcU",
   authDomain: "pizzaria-60905.firebaseapp.com",
   databaseURL: "https://pizzaria-60905.firebaseio.com",
@@ -19,76 +19,70 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-class Login extends Component {
-  state = {
+const login = () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithRedirect(provider);
+};
+
+function Login() {
+  const [userInfo, setUserInfo] = useState({
     isLoggedIn: false,
     user: null
-  };
+  });
 
-  componentDidMount() {
+  const { isLoggedIn, user } = userInfo;
+
+  useEffect(() => {
     firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        console.log("usuario logado ", user);
-        this.setState({ isLoggedIn: true, user });
-      } else {
-        console.log("usuario não logado ", user);
-        this.setState({ isLoggedIn: false, user: null });
-      }
+      console.log("usuario logado ", user);
+      setUserInfo({ isLoggedIn: !!user, user });
     });
-  }
+  }, []);
 
-  login() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithRedirect(provider);
-  }
-
-  logout = () => {
+  const logout = () => {
     firebase
       .auth()
       .signOut()
       .then(() => {
         console.log("deslogado");
-        this.setState({ isLoggedIn: false, user: null });
+        setUserInfo({ isLoggedIn: false, user: null });
       });
   };
 
-  render() {
-    const { isLoggedIn, user } = this.state;
-    return (
-      <Container>
-        <Grid container direction="column" alignItems="center" spacing={4}>
-          <Grid item>
-            <img src={Logo} alt="logotipo" />
-          </Grid>
-          <Grid item>
-            {isLoggedIn && (
-              <Fragment>
-                <pre>{JSON.stringify(user.displayName)}</pre>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={this.logout}
-                  fullWidth
-                >
-                  Sair
-                </Button>
-              </Fragment>
-            )}
-            {!isLoggedIn && (
+  return (
+    <Container>
+      <Grid container direction="column" alignItems="center" spacing={4}>
+        <Grid item>
+          <img src={Logo} alt="logotipo" />
+        </Grid>
+        <Grid item>
+          {isLoggedIn && (
+            <Fragment>
+              <pre>{JSON.stringify(user.displayName)}</pre>
               <Button
                 variant="outlined"
-                color="primary"
+                color="secondary"
+                onClick={logout}
                 fullWidth
-                onClick={this.login}
               >
-                Entrar com Google
+                Sair
               </Button>
-            )}
-          </Grid>
+            </Fragment>
+          )}
+          {!isLoggedIn && (
+            <Button
+              variant="outlined"
+              color="primary"
+              fullWidth
+              onClick={login}
+            >
+              Entrar com Google
+            </Button>
+          )}
         </Grid>
-      </Container>
-    );
-  }
+      </Grid>
+    </Container>
+  );
 }
 
 export default Login;
