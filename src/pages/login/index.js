@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from "react";
+import React, { useState, useEffect, Fragment, useCallback } from "react";
 import Logo from "../../assets/logotipo.png";
 import { Button, Grid } from "@material-ui/core";
 import { Container } from "./styles";
@@ -19,11 +19,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-const login = () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithRedirect(provider);
-};
-
 function Login() {
   const [userInfo, setUserInfo] = useState({
     isLoggedIn: false,
@@ -39,7 +34,12 @@ function Login() {
     });
   }, []);
 
-  const logout = () => {
+  const login = useCallback(() => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithRedirect(provider);
+  }, []);
+
+  const logout = useCallback(() => {
     firebase
       .auth()
       .signOut()
@@ -47,7 +47,7 @@ function Login() {
         console.log("deslogado");
         setUserInfo({ isLoggedIn: false, user: null });
       });
-  };
+  }, []);
 
   return (
     <Container>
